@@ -9,20 +9,21 @@ function player_load(sprites)
   player.facing = 1
   player.sprite = sprites.player_stand
   player.body:setFixedRotation(true)
+  player.jumps = 0
+  player.jumpLimit = 4
+
+  local joysticks = love.joystick.getJoysticks()
+  joystick = joysticks[1]
 end
 
 function player_update(dt)
   if game_state == 1 then
-    if love.keyboard.isDown("a") then
-      player.body:setX(player.body:getX() - player.speed * dt)
-      player.facing = -1
-    end
+    if not joystick then return end
 
-    if love.keyboard.isDown("d") then
-      player.body:setX(player.body:getX() + player.speed * dt)
-      player.facing = 1
-    end
+    local dir = joystick:getAxis(1)
+    player.body:setX(player.body:getX() + player.speed * dir * dt)
 
+    player.facing = dir >= 0 and 1 or -1
     player.sprite =
       player.grounded and sprites.player_stand or sprites.player_jump
   end
@@ -41,8 +42,19 @@ function player_draw()
   );
 end
 
-function player_keypressed(key)
-  if game_state == 1 and key == "w" and player.grounded then
-    player.body:applyLinearImpulse(0, -3000)
+function can_jump(button)
+  local wants_to_jump = game_state == 1 and button == "a"
+  return wants_to_jump and player.grounded or wants_to_jump and player.jumps < player.jumpLimit
+end
+
+function love.gamepadpressed(_joystick, button)
+  if game_state == 0 then
+    game_state = 1
+    timer = 0
+  else 
+    if can_jump(button) then
+      player.body:applyLinearImpulse(0, -3000)
+      player.jumps = player.jumps + 1
+    end
   end
 end

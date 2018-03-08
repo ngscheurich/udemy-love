@@ -17,7 +17,7 @@ function love.load()
 
   camera = hump_camera()
 
-  world = love.physics.newWorld(0, 500, false)
+  world = love.physics.newWorld(0, 1000, false)
   world:setCallbacks(begin_contact, end_contact, pre_solve, post_solve)
 
   sprites = {}
@@ -97,15 +97,6 @@ function love.draw()
   love.graphics.print("Time: " .. math.floor(timer), 10, 660)
 end
 
-function love.keypressed(key, scancode, isrepeat) 
-  player_keypressed(key)
-
-  if game_state == 0 then
-    game_state = 1
-    timer = 0
-  end
-end
-
 function spawn_platform(x, y, width, height)
   local platform = {};
   platform.body = love.physics.newBody(world, x, y, "static")
@@ -119,6 +110,7 @@ end
 
 function begin_contact(a, b, coll)
   player.grounded = true
+  player.jumps = 0
 end
 
 function end_contact(a, b, coll)
